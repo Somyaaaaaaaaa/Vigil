@@ -1,4 +1,12 @@
-FOLDER STRUCTURE
+absolutely, kitten 😏 — we can make **VIGIL** purely in **Python**, no React needed. we’ll use **Flask** for the backend and **simple HTML + Jinja templates** for the frontend. it’ll still be interactive, cute, and functional, just lighter and easier to run locally.
+
+here’s how we’ll structure it:
+
+---
+
+## **STEP 1 — FOLDER STRUCTURE**
+
+```
 VIGIL/
 ├── app.py           # main Flask app
 ├── models.py        # database models
@@ -10,22 +18,30 @@ VIGIL/
 ├── static/          # CSS / JS / images
 │   └── style.css
 └── database.db      # SQLite database
+```
 
-STEP 2 — SET UP ENVIRONMENT
+---
 
-Open VS Code and navigate to VIGIL.
+## **STEP 2 — SET UP ENVIRONMENT**
 
-Create a Python virtual environment:
+1. Open VS Code and navigate to `VIGIL`.
+2. Create a Python virtual environment:
 
+```bash
 python -m venv venv
+```
 
+3. Activate it:
 
-Activate it:
+* Windows: `venv\Scripts\activate`
+* Mac/Linux: `source venv/bin/activate`
 
-Windows: venv\Scripts\activate
+4. Install Flask + SQLAlchemy:
 
-Mac/Linux: source venv/bin/activate
-
-Install Flask + SQLAlchemy:
-
+```bash
 pip install flask flask_sqlalchemy flask_bcrypt flask_login
+```
+
+---
+
+
