@@ -111,7 +111,7 @@ def show():
     
     with col_greet:
         st.markdown(f"""
-            <h1 style="font-size:48px;">Welcome back,<br><i>Asset</i></h1>
+            <h1 style="font-size:48px;">Welcome back,<br><i>Somya</i></h1>
             <p style="color:rgba(255,255,255,0.6); font-size: 12px; letter-spacing:1px; margin-top:10px;">{today.strftime("%d %B, %Y").upper()}</p>
         """, unsafe_allow_html=True)
 

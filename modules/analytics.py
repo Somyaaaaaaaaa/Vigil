@@ -143,7 +143,7 @@ def show():
         st.info("Decent. Tighten execution tomorrow.")
 
     else:
-        st.warning("Low output today.")
+        st.warning("Low output today. Reset, don't spiral.")
 
 
 # XP LEVEL SYSTEM
@@ -234,18 +234,18 @@ def show():
 
     if streak >= 30:
         st.snow()
-        st.success("👑 30-Day Streak.")
+        st.success("👑 30-Day Streak. This is discipline.")
 
     elif streak >= 14:
         st.balloons()
-        st.success("🔥 14-Day Streak.")
+        st.success("🔥 14-Day Streak. You're locked in.")
 
     elif streak >= 7:
         st.balloons()
-        st.success("⚡ 7-Day Streak.")
+        st.success("⚡ 7-Day Streak. Momentum building.")
 
     elif streak >= 3:
-        st.info("📈 3-Day Streak.")
+        st.info("📈 3-Day Streak. Keep it alive.")
 
     elif streak == 0:
         st.error("Chain broken. Start again today.")
@@ -253,7 +253,7 @@ def show():
 # win screen
     if streak >= 7:
         st.balloons()
-        st.success("7-day streak.")   
+        st.success("7-day streak. Keep going.")   
 
     # habit analysis
     st.subheader("Sector 4: Habit Correlations")
