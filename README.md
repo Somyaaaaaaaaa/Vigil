@@ -53,14 +53,14 @@ The system's star feature. A dedicated analysis window that processes raw behavi
 
 ---
 
-## 🔐 ACCESS PROTOCOL
+## ACCESS PROTOCOL
 The system is protected by an encrypted access layer.
 1. Ensure your `.env` file is configured with `APP_PASSWORD`.
 2. Unauthorized entry attempts will result in **ACCESS DENIED** status.
 
 ---
 
-## 🚀 DEPLOYMENT INSTRUCTIONS
+## DEPLOYMENT INSTRUCTIONS
 
 1.  **Clone the Core:**
     git clone https://github.com/yourusername/vigil.git
@@ -71,7 +71,7 @@ The system is protected by an encrypted access layer.
 
 ---
 
-## 📜 INTELLECTUAL PROPERTY NOTICE
+## INTELLECTUAL PROPERTY NOTICE
 **© 2026 VIGIL CORE. ALL RIGHTS RESERVED.**
 
 Vigil is provided for personal use. The visual identity, logo, and "Military-Elegant" aesthetic are the proprietary property of the developer. 
