@@ -63,11 +63,37 @@ The system is protected by an encrypted access layer.
 ## DEPLOYMENT INSTRUCTIONS
 
 1.  **Clone the Core:**
+    ```
     git clone https://github.com/Somyaaaaaaaaa/Vigil.git
-2.  **Environment Setup:**
-    pip install streamlit os-sys datetime
-3.  **Initialize System:**
+    cd Vigil
+    ```
+3.  **Environment Setup:**
+    ```
+    pip install -r requirements.txt
+    ```
+5.  **Initialize System:**
+    ```
     streamlit run app.py
+    ```
+
+### 🔐 Setup (Required for Running Locally)
+
+This app uses an environment variable for password protection. Before running the app, you must set your own password:
+
+#### On Windows:
+
+```
+setx APP_PASSWORD your_password_here
+```
+
+#### On macOS/Linux:
+
+```
+export APP_PASSWORD=your_password_here
+```
+
+After setting the variable, restart your terminal and run the app normally. If the password is not set, the app will not grant access.
+
 
 ---
 
