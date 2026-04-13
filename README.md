@@ -63,7 +63,7 @@ The system is protected by an encrypted access layer.
 ## DEPLOYMENT INSTRUCTIONS
 
 1.  **Clone the Core:**
-    git clone https://github.com/yourusername/vigil.git
+    git clone https://github.com/Somyaaaaaaaaa/Vigil.git
 2.  **Environment Setup:**
     pip install streamlit os-sys datetime
 3.  **Initialize System:**
