@@ -18,7 +18,7 @@ def show():
     st.header("◈ Peripheral Vision")
 
     def deploy_intel():
-        item = st.session_state.wishlist_input
+        item = st.session_state.wishlist_input.strip()
         if item:
             db.add_wishlist(item)
             st.session_state.wishlist_input = ""
@@ -27,9 +27,10 @@ def show():
 
     st.button("Deploy Intel", on_click=deploy_intel)
 
-    df = db.load_wishlist()
+    wishlist = db.load_wishlist()
+    df = pd.DataFrame(wishlist, columns=["id", "item", "completed"])
 
-    if not df.empty:
+    if not df.empty and "item" in df.columns:
         for _, row in df.iterrows():
             col1, col2 = st.columns([5,1])
 
@@ -42,11 +43,11 @@ def show():
 
                 if checked != bool(row["completed"]):
                     db.update_wishlist(row["id"], checked)
-                    st.session_state["_refresh"] = not st.session_state.get("_refresh", False)
-
+                    st.rerun()
             with col2:
                 if st.button("⊝", key=f"del_wish_{row['id']}"):
                     db.delete_wishlist(row["id"])
-                    st.session_state["_refresh"] = not st.session_state.get("_refresh", False)
+                    db.delete_wishlist(row["id"])
+                    st.rerun()
     else:
         st.info("Array clean. No intel on the horizon.")

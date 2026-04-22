@@ -4,15 +4,25 @@ from datetime import datetime, date, timedelta
 import database as db
 import calendar
 
-
 def show():
     def load_all_data():
-        conn = db.connect()
-        habits = pd.read_sql_query("SELECT * FROM habits", conn)
-        goals = pd.read_sql_query("SELECT * FROM goals", conn)
-        notes = pd.read_sql_query("SELECT * FROM notes", conn)
-        conn.close()
-        return habits, goals, notes
+        habits = db.load_all_habits()
+        goals = db.load_goals()
+        notes = db.load_all_notes()
+        habits_df = pd.DataFrame(habits, columns=[
+            "id", "habit", "date", "completed"
+        ])
+
+        goals_df = pd.DataFrame(goals, columns=[
+            "id", "title", "category", "mode", "time_value", "duration", "completed"
+        ])
+
+        notes_df = pd.DataFrame(notes, columns=[
+            "id", "date", "note"
+        ])
+
+        return habits_df, goals_df, notes_df
+
 
     habits_df, goals_df, notes_df = load_all_data()
 
@@ -91,6 +101,17 @@ def show():
             color: #00e5ff;
             background: transparent;
         }
+                
+        .calendar-scroll {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-scroll div[data-testid="column"] {
+                min-width: 60px;
+            }
+        }
 
         /* Strike-through for completed tasks */
         .completed-task { opacity: 0.3; text-decoration: line-through; font-weight: 200; color: #FFFFFF; }
@@ -145,9 +166,11 @@ def show():
         def render_goal_sector(title, category_key, mode_label):
             st.markdown(f"<h4>{title}</h4>", unsafe_allow_html=True)
 
-            conn = db.connect()
-            goals_data = pd.read_sql_query(f"SELECT * FROM goals WHERE category='{category_key}'", conn)
-            conn.close()
+            
+            if not goals_df.empty and "category" in goals_df.columns:
+                goals_data = goals_df[goals_df["category"] == category_key]
+            else:
+                goals_data = pd.DataFrame()
 
             if not goals_data.empty:
                 for _, row in goals_data.iterrows():
@@ -163,23 +186,29 @@ def show():
                         )
 
                         if checked != is_done:
-                            conn = db.connect()
-                            conn.execute(
-                                "UPDATE goals SET completed=? WHERE id=?",
-                                (checked, row["id"])
-                            )
-                            conn.commit()
-                            conn.close()
-                            load_all_data.clear()
+                            db.update_goal_status(row["id"], checked)
+                            st.rerun()
 
                     with c2:
                         if st.button("×", key=f"del_home_goal_{row['id']}"):
-                            conn = db.connect()
-                            conn.execute("DELETE FROM goals WHERE id=?", (row["id"],))
-                            conn.commit()
-                            conn.close()
-                            load_all_data.clear()
+                            db.delete_goal(row["id"])
                             st.rerun()
+
+
+            def add_goal_callback(category_key, mode_label):
+                key = f"input_{category_key}"
+                clean_goal = st.session_state.get(key, "").strip()
+
+                if clean_goal:
+                    db.add_goal(
+                        clean_goal,
+                        category_key,
+                        mode_label,
+                        None,
+                        4 if mode_label == "Monthly" else 52
+                    )
+
+                st.session_state[key] = ""
 
 
             new_goal = st.text_input(
@@ -189,26 +218,12 @@ def show():
                 key=f"input_{category_key}"
             )
 
-            if new_goal.strip() and new_goal != st.session_state.get(f"last_{category_key}", ""):
-                conn = db.connect()
-                cursor = conn.cursor()
-
-                time_val = (
-                    datetime.now().strftime("%b")
-                    if mode_label == "Monthly"
-                    else str(datetime.now().year)
-                )
-                    
-                cursor.execute(
-                    "INSERT INTO goals (title, category, mode, time_value, duration, completed) VALUES (?, ?, ?, ?, ?, ?)",
-                    (new_goal, category_key, mode_label, time_val,
-                    4 if mode_label == "Monthly" else 52, False)
-                )
-                
-                conn.commit()
-                conn.close()
-                st.session_state[f"last_{category_key}"] = new_goal
-                st.rerun()
+            st.button(
+                f"Add {category_key}",
+                key=f"btn_{category_key}",
+                on_click=add_goal_callback,
+                args=(category_key, mode_label)
+            )
 
             st.markdown("<br>", unsafe_allow_html=True)
 
@@ -218,7 +233,11 @@ def show():
 
         st.markdown("<h4>System Status</h4>", unsafe_allow_html=True)
 
-        monthly_data = goals_df[goals_df["mode"] == "Monthly"]
+        if not goals_df.empty and "mode" in goals_df.columns:
+            monthly_data = goals_df[goals_df["mode"] == "Monthly"]
+        else:
+            monthly_data = pd.DataFrame()
+            
 
         progress = 0
         if not monthly_data.empty:
@@ -231,6 +250,7 @@ def show():
             f"<p style='font-size:11px; opacity:0.6;'>Completion: {int(progress*100)}%</p>",
             unsafe_allow_html=True
 )
+        
 
         st.markdown("""
         <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 5px; margin-top: 10px;">
@@ -243,7 +263,7 @@ def show():
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
             <div style="font-family:'Playfair Display', serif; font-size:18px; opacity:0.4; font-style:italic; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px;">
-            IEnergy flows where attention goes. Focus on the signal, not the noise.
+            Energy flows where attention goes. Focus on the signal, not the noise.
             </div>
         """, unsafe_allow_html=True)
 
@@ -259,9 +279,6 @@ def show():
         st.session_state.selected_year = date.today().year
 
 
-    conn = db.connect()
-    notes_df = pd.read_sql_query("SELECT * FROM notes ORDER BY date DESC", conn)
-    conn.close()
 
     if not notes_df.empty:
         notes_df["date"] = notes_df["date"].astype(str)
@@ -297,6 +314,7 @@ def show():
 
         dates_with_notes = set(notes_df["date"]) if not notes_df.empty else set()
 
+        st.markdown('<div class="calendar-scroll">', unsafe_allow_html=True)
         days_header = ["M", "T", "W", "T", "F", "S", "S"]
         cols = st.columns(7)
         for i, d in enumerate(days_header):
@@ -328,7 +346,7 @@ def show():
                             "<div style='margin-top:-15px; text-align:center; color:#00e5ff; font-size:15px;'>•</div>",
                             unsafe_allow_html=True
                         )
-
+        st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("<br><br><h4>Intelligence Feed</h4>", unsafe_allow_html=True)
 
         selected_date = st.session_state.selected_date
@@ -339,26 +357,27 @@ def show():
         )
 
         
+        def save_note_callback(selected_date):
+            clean_note = st.session_state.get("intel_input", "").strip()
+
+            if clean_note:
+                db.add_note(selected_date, clean_note)
+
+            st.session_state["intel_input"] = ""
+
+
         note_input = st.text_area(
             "Log intel:",
             key="intel_input"
         )
 
-        clean_note = note_input.strip()
+        st.button(
+            "Save Note",
+            on_click=save_note_callback,
+            args=(selected_date,)
+        )
 
-        if clean_note and clean_note != st.session_state.get("last_note", ""):
-            conn = db.connect()
-            conn.execute(
-                "INSERT INTO notes (date, note) VALUES (?, ?)",
-                (selected_date, clean_note)
-            )
-            conn.commit()
-            conn.close()
-
-            st.session_state.last_note = clean_note
-            st.rerun()
-
-        selected_date = st.session_state.selected_date
+        selected_date = str(st.session_state.selected_date)
         filtered_notes = notes_df[notes_df["date"] == selected_date]
 
         if not filtered_notes.empty:
@@ -379,10 +398,7 @@ def show():
 
                 with col2:
                     if st.button("-", key=f"del_{row['id']}"):
-                        conn = db.connect()
-                        conn.execute("DELETE FROM notes WHERE id=?", (row["id"],))
-                        conn.commit()
-                        conn.close()
+                        db.delete_note(row["id"])
                         st.rerun()
         else:
             st.markdown("<p style='font-size:12px; opacity:0.3;'>No intel logged for this date.</p>", unsafe_allow_html=True)

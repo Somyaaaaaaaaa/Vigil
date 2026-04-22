@@ -3,6 +3,8 @@ import pandas as pd
 from datetime import datetime, date
 import database as db
 
+
+
 def show():
     st.markdown("""
         <style>
@@ -41,14 +43,19 @@ def show():
         )
     
     def add_task_and_clear():
-        task = st.session_state.task_input
-        selected_date = st.session_state.task_date
+        task = st.session_state.get("task_input", "")
+        selected_date = st.session_state.get("task_date")
+
         if not task or not task.strip():
             st.warning("You tried to submit nothing. Revolutionary.")
             return
 
         task = task.strip()
-        db.add_task(task, str(selected_date), False)
+
+        db.add_task(task, str(selected_date))
+
+        st.session_state.task_input = ""
+        st.rerun()
     
     st.text_input(
         "Target",
@@ -62,13 +69,19 @@ def show():
     st.write("---")
 
     # display logic
-    tasks = db.load_tasks_by_date(target_date)
+    tasks = db.load_tasks_by_date(str(target_date))
 
+    # 1. Define the callback outside the loop so it's clean
+    def toggle_task(task_id):
+        new_val = st.session_state[f"task_chk_{task_id}"]
+        db.update_task_status(task_id, new_val)
     if tasks:
         for t in tasks:
-            task_text = t[2] 
-            is_done = bool(t[4])  
+            task_id = t["id"]
+            task_text = t["task"] 
+            is_done = bool(t.get("completed", False))  
 
+            # Visual styling for the "Hit List"
             prefix = "✓" if is_done else "⌖"
             label = f"{prefix} {task_text.upper()}"
             if is_done:
@@ -77,19 +90,21 @@ def show():
             col_check, col_del = st.columns([6, 1])
             
             with col_check:
-                checked = st.checkbox(
+                # Use on_change to handle the database update
+                st.checkbox(
                     label,
                     value=is_done,
-                    key=f"task_chk_{t[0]}"
+                    key=f"task_chk_{task_id}",
+                    on_change=toggle_task,
+                    args=(task_id,)
                 )
 
-                if checked != is_done:
-                    db.update_task_status(t[0], checked)
-
             with col_del:
-                if st.button("⊝", key=f"task_del_{t[0]}"):
-                    db.delete_task(t[0])
-                    st.rerun()  
+                # Delete remains the same
+                if st.button("⊝", key=f"task_del_{task_id}"):
+                    db.delete_task(task_id)
+                    st.rerun() 
+
     else:
         st.info("NO active targets for this date.")
 

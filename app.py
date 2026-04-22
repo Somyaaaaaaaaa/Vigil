@@ -3,6 +3,16 @@ from datetime import datetime
 import database as db
 from modules import analytics, home, checklist, goals, routines, tasks, habits
 import os 
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def get_password():
+    env_pass = os.getenv("APP_PASSWORD")
+
+    secret_pass = st.secrets.get("APP_PASSWORD", None)
+
+    return env_pass or secret_pass
 
 # configurations
 LOGO_PATH = os.path.join("assets", "Untitled.png")
@@ -11,33 +21,34 @@ st.set_page_config(
     page_title="Vigil",
     page_icon=LOGO_PATH,
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state= "collapsed"
 )
 
 # authentication logic
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
+stored_password = get_password()
+
+if not stored_password:
+    st.error("APP_PASSWORD not set. Fix your config.")
+    st.stop()
+
 if not st.session_state.authenticated:
-    # Minimalist login UI
-    _, auth_col, _ = st.columns([1,1,1])
-    with auth_col:
+    _, col, _ = st.columns([1,1,1])
+
+    with col:
         st.markdown("<h2 style='text-align:center;'>ACCESS REQUIRED</h2>", unsafe_allow_html=True)
-        password = st.text_input("ENTER CODE", type="password", label_visibility="collapsed", key= "password_input")
-        stored_password = os.getenv("APP_PASSWORD")
 
-        if not stored_password:
-            st.error("No password configured.")
-            st.stop()
+        password = st.text_input("ENTER CODE", type="password", label_visibility="collapsed")
 
-        if password == stored_password:
-            st.session_state.authenticated = True
-            st.rerun()
+        if st.button("ENTER"):
+            if password == stored_password:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("ACCESS DENIED")
 
-        if password is None:
-            st.error ("Set APP_PASSWORD in your environment before running the app.")
-        elif password:
-            st.error("ACCESS DENIED")
     st.stop()
 
 # interface
@@ -96,6 +107,9 @@ if os.path.exists(LOGO_PATH):
 
 st.sidebar.markdown("<p style='letter-spacing:4px; font-size:10px; opacity:0.5; text-align:center;'>VIGIL CORE</p>", unsafe_allow_html=True)
 
+if "main_nav" not in st.session_state:
+    st.session_state.main_nav = "Dashboard"
+
 main_nav = st.sidebar.radio("SYSTEMS", ["Dashboard", "Tracking", "Planning", "Insights"])
 
 # Sub-navigation Logic
@@ -107,8 +121,7 @@ elif main_nav == "Planning":
     st.sidebar.markdown("---")
     sub_page = st.sidebar.radio("STRATEGY", ["Goals", "Routines", "Checklist"])
 
-# routing
-db.init_db()
+
 
 if main_nav == "Dashboard":
     home.show()

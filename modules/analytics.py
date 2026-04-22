@@ -22,17 +22,26 @@ def show():
 
     @st.cache_data
     def load_data():
-        conn = db.connect()
-        tasks = pd.read_sql_query("SELECT * FROM tasks", conn)
-        habits = pd.read_sql_query("SELECT * FROM habits", conn)
-        conn.close()
-        return tasks, habits
+        try:
+            tasks = db.load_tasks_by_date("")  # we'll fix filtering below
+            habits = db.load_all_habits()
+            return tasks, habits
+        except Exception as e:
+            st.error(f"Error loading data: {e}")
+            return [], []
+    
 
-    tasks_df, habits_df = load_data()
+    tasks, habits = load_data()
 
-    habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce").dt.date
+    tasks_df = pd.DataFrame(tasks, columns=["id", "task", "date", "mission_id", "completed"])
+    habits_df = pd.DataFrame(habits, columns=[
+        "id", "date", "wake_time", "sleep_time",
+        "water", "steps", "workout", "screen_time",
+        "mood", "energy", "focus", "meals", "snacks", "night_issue"
+    ])
 
-    tasks_df["date"] = pd.to_datetime(tasks_df["date"]).dt.date
+    if not habits_df.empty:
+        habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce").dt.date
 
 # STREAK CALCULATION
     st.subheader("Sector 1: Persistence Metrics")
@@ -124,10 +133,10 @@ def show():
 
     m1, m2, m3, m4 = st.columns(4)
 
-    m1.metric("🔥 Streak", streak)
-    m2.metric("🏆 Best Streak", max_streak)
-    m3.metric("⚡ Today's Score", int(today_score.iloc[0]["score"]) if not today_score.empty else 0)
-    m4.metric("🎯 Best Score", int(best_score))
+    m1.metric("Streak", streak)
+    m2.metric("Best Streak", max_streak)
+    m3.metric("Today's Score", int(today_score.iloc[0]["score"]) if not today_score.empty else 0)
+    m4.metric("Best Score", int(best_score))
 
     today_score_val = 0
 
@@ -147,22 +156,75 @@ def show():
 
 
 # XP LEVEL SYSTEM
-    tasks_completed = tasks_df[tasks_df["completed"] == 1]
+    tasks_completed = tasks_df[tasks_df["completed"]]
 
     xp = len(tasks_completed) * 10
 
     if not scores_df.empty:
         xp += int(scores_df["score"].sum())
 
-    level = xp // 100
-    progress = (xp % 100) / 100
+    import math
+
+    level = int(math.sqrt(xp / 100))
+
+    xp_for_current_level = (level ** 2) * 100
+    xp_for_next_level = ((level + 1) ** 2) * 100
+
+    progress = (xp - xp_for_current_level) / (xp_for_next_level - xp_for_current_level)
+    progress = max(0, min(progress, 1))
 
     col1, col2 = st.columns(2)
 
-    col1.metric("🎯 Level", int(level))
-    col2.metric("⚡ Total XP", int(xp))
+    col1.metric("Level", int(level))
+    col2.metric("Total XP", int(xp))
 
     st.progress(progress)
+
+    with st.expander(" ", expanded=False):
+        st.markdown(f"""
+            **XP SYSTEM**
+
+            • XP is earned from:
+            - Completed tasks → **10 XP each**
+            - Daily performance score → contributes directly
+
+            • Total XP accumulates over time:
+            - No reset
+            - No decay
+            - Every action counts long-term
+
+            ---
+
+            **LEVEL SYSTEM (Progressive Scaling)**
+
+            • Levels are based on a square-root model:
+            - Early levels are fast
+            - Higher levels require significantly more effort
+
+            • Current Level: **{level}**
+
+            • XP required for this level: **{int(xp_for_current_level)}**  
+            • XP required for next level: **{int(xp_for_next_level)}**
+
+            ---
+
+            **PROGRESSION**
+
+            • Your progress bar shows how close you are to the next level  
+            • Progress is calculated within your current level range
+
+            → Current Progress: **{int(progress * 100)}%**
+
+            ---
+
+            **INTERPRETATION**
+
+            • High XP + low level → early growth phase  
+            • High level → requires consistent execution over time  
+            • System rewards:
+            - Consistency > bursts  
+            - Sustained discipline > occasional effort
+            """)
 
 # ACHIEVEMENTS
     st.markdown("### Sector 2: Achievements")
@@ -173,7 +235,10 @@ def show():
     today_date = datetime.now().date()
 
     # today's completed tasks
-    tasks_today = tasks_df[tasks_df["date"] == today_str]
+    tasks_df["date"] = pd.to_datetime(tasks_df["date"], errors="coerce").dt.date
+    today_date = datetime.now().date()
+
+    tasks_today = tasks_df[tasks_df["date"] == today_date]
 
     completed_today = 0
     if not tasks_today.empty:
@@ -188,13 +253,13 @@ def show():
 
 
     if streak >= 7:
-        achievements.append("🏆 7 Day Streak")
+        achievements.append("7 Day Streak")
 
     if today_score_val > 80:
-        achievements.append("🔥 High Achiever")
+        achievements.append("High Achiever")
 
     if completed_today >= 10:
-        achievements.append("⚔️ Winner, aren't you?")
+        achievements.append("Winner, aren't you?")
 
     # display
     if achievements:
@@ -308,7 +373,6 @@ def show():
             
             st.line_chart(habits_df[["screen_time", "meals", "snacks"]])
             
-            # sleep chart separately so it doesn't look cramped
             sleep_df = habits_df[["wake_time", "sleep_time"]].dropna()
             if not sleep_df.empty:
                 st.subheader("Sleep Schedule")
@@ -350,9 +414,8 @@ def show():
 
                         workout = workout_lookup.get(date_key)
 
-                        # future days → empty
                         if date_key > datetime.now().date():
-                            color = "#111111"  # darker blank
+                            color = "#111111"  
                             label = ""
                         else:
                             if pd.isna(workout) or workout is None:
@@ -386,7 +449,6 @@ def show():
 
         df = habits_df.copy()
 
-        # ensure numeric
         df["focus"] = pd.to_numeric(df["focus"], errors="coerce")
         df["energy"] = pd.to_numeric(df["energy"], errors="coerce")
         df["mood"] = pd.to_numeric(df["mood"], errors="coerce")

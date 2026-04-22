@@ -50,22 +50,14 @@ def show():
             elif start_time >= end_time:
                 st.warning("Invalid time range.")
             else:
-                conn = db.connect()
-                cursor = conn.cursor()
-                cursor.execute("""
-                INSERT INTO routines (day, start_time, end_time, task)
-                VALUES (?, ?, ?, ?)
-                """, (day, str(start_time.strftime("%H:%M")), str(end_time), task))
-                conn.commit()
-                conn.close()
+                db.add_routine(day, start_time.strftime("%H:%M"), end_time.strftime("%H:%M"), task)
                 st.toast(f"PROTOCOL LOCKED FOR {day.upper()}.")
                 st.rerun()
 
     st.write("---")
 
-    conn = db.connect()
-    df = pd.read_sql_query("SELECT * FROM routines", conn)
-    conn.close()
+    data = db.load_routines()
+    df = pd.DataFrame(data)
 
     if not df.empty:
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -76,6 +68,7 @@ def show():
                 day_df = df[df["day"] == d]
                 
                 if not day_df.empty:
+                    day_df["start_time"] = pd.to_datetime(day_df["start_time"], format="%H:%M")
                     day_df = day_df.sort_values("start_time")
 
                     for _, row in day_df.iterrows():
