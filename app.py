@@ -10,7 +10,10 @@ load_dotenv()
 def get_password():
     env_pass = os.getenv("APP_PASSWORD")
 
-    secret_pass = st.secrets.get("APP_PASSWORD", None)
+    try:
+        secret_pass = st.secrets["APP_PASSWORD"]
+    except Exception:
+        secret_pass = None
 
     return env_pass or secret_pass
 
