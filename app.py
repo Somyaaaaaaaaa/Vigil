@@ -3,9 +3,6 @@ from datetime import datetime
 import database as db
 from modules import analytics, home, checklist, goals, routines, tasks, habits
 import os 
-from dotenv import load_dotenv
-
-load_dotenv()
 
 def get_password():
     env_pass = os.getenv("APP_PASSWORD")
