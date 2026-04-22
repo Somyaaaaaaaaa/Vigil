@@ -1,108 +1,163 @@
-# VIGIL 
-**Status: Operational** 
+# **VIGIL**
+
+**Status: Operational**
 **Classification: Personal Command & Intelligence Dashboard**
 
-VIGIL is a high-fidelity tactical management system built with a dark, sophisticated, and mission-oriented interface. It is designed for absolute oversight of daily operations, combining behavioral tracking with strategic analysis.
-
----
-## 1. Code Architecture
-
-- app.py → entry point, routing, auth
-- database.py → all DB logic
-
-### Modules
-- home.py → dashboard + streak + overview
-- analytics.py → scores, trends, insights
-- habits.py → logging system
-- tasks.py → task execution
-- goals.py → direction layer
-- routines.py → structure layer
-- checklist.py → quick execution
-
-### Flow
-app.py → route → module → database.py → SQLite
-
-## 2. Logical Architecture 
-
-Layers:
-Execution → tasks, checklist
-Consistency → habits, streaks
-Structure → routines
-Direction → goals
-Reflection → notes
-Analysis → analytics and insights
+VIGIL is a high-fidelity tactical management system designed for complete oversight of daily operations. It combines execution tracking, behavioral analysis, and strategic planning within a unified, mission-oriented interface.
 
 ---
 
-## OPERATIONAL MODULES
+## **1. Code Architecture**
+
+* `app.py` → Entry point, routing, authentication
+* `database.py` → Supabase integration and all data operations
+
+### **Modules**
+
+* `home.py` → Dashboard, streak tracking, overview
+* `analytics.py` → Scores, trends, behavioral insights
+* `habits.py` → Daily logging system
+* `tasks.py` → Task execution layer
+* `goals.py` → Direction and long-term planning
+* `routines.py` → Time-blocking and structure
+* `checklist.py` → Quick, non-time-bound execution
+
+### **Flow**
+
+```
+app.py → route → module → database.py → Supabase
+```
+
+---
+
+## **2. Logical Architecture**
+
+**Execution Layer**
+→ Tasks, Checklist
+
+**Consistency Layer**
+→ Habits, Streaks
+
+**Structure Layer**
+→ Routines
+
+**Direction Layer**
+→ Goals
+
+**Reflection Layer**
+→ Notes
+
+**Analysis Layer**
+→ Analytics & Insights
+
+---
+
+## **OPERATIONAL MODULES**
 
 ### **I. COMMAND (Dashboard)**
-The central node. A high-level overview of active sectors, providing immediate situational awareness of your daily objectives.
+
+Central control node providing real-time situational awareness of active objectives, streaks, and system status.
 
 ### **II. DATA ACQUISITION (Tracking)**
-* **Tasks:** Objective-based daily execution. 
-* **Habits:** Long-term behavioral consistency monitoring.
+
+* **Tasks:** Daily objective execution
+* **Habits:** Behavioral consistency tracking
 
 ### **III. STRATEGY (Planning)**
-* **Goals:** Long-range trajectory alignment.
-* **Routines:** Standard Operating Procedures (SOPs) for daily stability.
-* **Checklist:** A repository for non-time-sensitive maintenance. These are objectives without a tactical deadline—tasks that require execution only when primary operational windows are clear.
+
+* **Goals:** Long-term trajectory alignment
+* **Routines:** Structured daily systems (SOPs)
+* **Checklist:** Non-time-sensitive execution pool
 
 ### **IV. INTELLIGENCE (Insights)**
-The system's star feature. A dedicated analysis window that processes raw behavioral data into visual intelligence, identifying vulnerabilities in performance and optimizing output.
+
+Processes behavioral data into actionable insights, identifying patterns, inefficiencies, and performance gaps.
 
 ---
 
-## ACCESS PROTOCOL
-The system is protected by an encrypted access layer.
-1. Ensure your `.env` file is configured with `APP_PASSWORD`.
-2. Unauthorized entry attempts will result in **ACCESS DENIED** status.
+## **ACCESS PROTOCOL**
+
+The system is protected by a password layer.
+
+Before running the app, configure your environment:
+
+### **Create a `.env` file**
+
+```
+APP_PASSWORD=your_password_here
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+```
+
+If not configured, access will be denied.
 
 ---
 
-## DEPLOYMENT INSTRUCTIONS
+## **DATABASE CONFIGURATION**
 
-1.  **Clone the Core:**
-    ```
-    git clone https://github.com/Somyaaaaaaaaa/Vigil.git
-    cd Vigil
-    ```
-3.  **Environment Setup:**
-    ```
-    pip install -r requirements.txt
-    ```
-5.  **Initialize System:**
-    ```
-    streamlit run app.py
-    ```
+VIGIL uses **Supabase** for persistent storage.
 
-### 🔐 Setup (Required for Running Locally)
+### **Setup Steps:**
 
-This app uses an environment variable for password protection. Before running the app, you must set your own password:
-
-#### On Windows:
-
-```
-setx APP_PASSWORD your_password_here
-```
-
-#### On macOS/Linux:
-
-```
-export APP_PASSWORD=your_password_here
-```
-
-After setting the variable, restart your terminal and run the app normally. If the password is not set, the app will not grant access.
-
+1. Create a Supabase project
+2. Create required tables (tasks, goals, missions, habits, notes, etc.)
+3. Add credentials to `.env` (see above)
 
 ---
 
-## INTELLECTUAL PROPERTY NOTICE
+## **DEPLOYMENT INSTRUCTIONS**
+
+### **1. Clone Repository**
+
+```
+git clone https://github.com/Somyaaaaaaaaa/Vigil.git
+cd Vigil
+```
+
+### **2. Install Dependencies**
+
+```
+pip install -r requirements.txt
+```
+
+### **3. Configure Environment**
+
+Create `.env` file as described above.
+
+### **4. Run Application**
+
+```
+streamlit run app.py
+```
+
+---
+
+## **FOR CONTRIBUTORS / USERS**
+
+A template file is provided:
+
+```
+.env.example
+```
+
+Copy it and rename to `.env`, then fill in your credentials.
+
+---
+
+## **SECURITY NOTE**
+
+* `.env` is not included in the repository
+* Credentials must be configured locally
+* Do not expose your Supabase keys publicly
+
+---
+
+## **INTELLECTUAL PROPERTY NOTICE**
+
 **© 2026 VIGIL CORE. ALL RIGHTS RESERVED.**
 
-Vigil is provided for personal use. The visual identity, logo, and "Military-Elegant" aesthetic are the proprietary property of the developer. 
-* **Non-Commercial:** You may not use this system for commercial purposes or monetization.
-* **Attribution:** If shared, credit to the original architect is mandatory.
-* **Integrity:** No unauthorized "re-skinning" or rebranding of the Vigil Core identity.
+The Vigil system, including its design language and structure, is an original work.
 
----
+* Non-commercial use only
+* Attribution required if shared
+* Rebranding or redistribution without credit is not permitted
