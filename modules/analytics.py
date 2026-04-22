@@ -329,8 +329,12 @@ def show():
             start=habits_df["date"].min(),
             end=habits_df["date"].max()
         )
+        
+        habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce")
 
-        habits_df = habits_df.set_index("date").reindex(full_range)
+        habits_df = habits_df.sort_values("date").drop_duplicates("date", keep="last")
+        habits_df = habits_df.set_index("date")
+        habits_df = habits_df.reindex(full_range)
         habits_df.index.name = "date"
 
         habits_df["mood"] = pd.to_numeric(habits_df["mood"], errors="coerce")

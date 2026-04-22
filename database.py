@@ -1,7 +1,8 @@
 import os
 import streamlit as st
 from supabase import create_client
-
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_supabase_credentials():
     try:
