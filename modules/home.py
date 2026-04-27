@@ -138,17 +138,25 @@ def show():
 
     with col_stat:
         # Streak Calculation Logic
+        from datetime import date, timedelta
+
         streak = 0
 
         if not habits_df.empty:
-            habits_df["date"] = pd.to_datetime(habits_df["date"]).dt.date
+            habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce").dt.date
             unique_dates = set(habits_df["date"])
 
-            current_day = date.today()
+            today = date.today()
+
+            # if today not logged yet, start from yesterday
+            if today not in unique_dates:
+                current_day = today - timedelta(days=1)
+            else:
+                current_day = today
 
             while current_day in unique_dates:
                 streak += 1
-                current_day -= timedelta(days=1)        
+                current_day -= timedelta(days=1)     
         
         st.markdown(f"""
             <div style="text-align:right; margin-top: 20px;">

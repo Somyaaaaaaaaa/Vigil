@@ -61,7 +61,7 @@ def show():
         "Target",
         key="task_input",
         placeholder="Enter objective designation",
-        on_change=add_task_and_clear # Trigger add on 'Enter' key
+        on_change=add_task_and_clear 
     )
 
     st.button("Confirm hit", on_click=add_task_and_clear)
@@ -71,7 +71,6 @@ def show():
     # display logic
     tasks = db.load_tasks_by_date(str(target_date))
 
-    # 1. Define the callback outside the loop so it's clean
     def toggle_task(task_id):
         new_val = st.session_state[f"task_chk_{task_id}"]
         db.update_task_status(task_id, new_val)
@@ -81,7 +80,6 @@ def show():
             task_text = t["task"] 
             is_done = bool(t.get("completed", False))  
 
-            # Visual styling for the "Hit List"
             prefix = "✓" if is_done else "⌖"
             label = f"{prefix} {task_text.upper()}"
             if is_done:
@@ -90,7 +88,6 @@ def show():
             col_check, col_del = st.columns([6, 1])
             
             with col_check:
-                # Use on_change to handle the database update
                 st.checkbox(
                     label,
                     value=is_done,
@@ -100,7 +97,6 @@ def show():
                 )
 
             with col_del:
-                # Delete remains the same
                 if st.button("⊝", key=f"task_del_{task_id}"):
                     db.delete_task(task_id)
                     st.rerun() 

@@ -57,18 +57,25 @@ def show():
         today = datetime.now().date()
 
         # current streak
-        today = datetime.now().date()
-        date_set = set(dates)
+        from datetime import date, timedelta
 
-        # FORCE: today must exist or streak = 0
-        if today in date_set:
-            current_day = today
+        streak = 0
 
-            while current_day in date_set:
+        if not habits_df.empty:
+            habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce").dt.date
+            unique_dates = set(habits_df["date"])
+
+            today = date.today()
+
+            # if today not logged yet, start from yesterday
+            if today not in unique_dates:
+                current_day = today - timedelta(days=1)
+            else:
+                current_day = today
+
+            while current_day in unique_dates:
                 streak += 1
                 current_day -= timedelta(days=1)
-        else:
-            streak = 0
 
 
         # historical best
