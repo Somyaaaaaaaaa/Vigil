@@ -55,7 +55,6 @@ def show():
         db.add_task(task, str(selected_date))
 
         st.session_state.task_input = ""
-        st.rerun()
     
     st.text_input(
         "Target",
