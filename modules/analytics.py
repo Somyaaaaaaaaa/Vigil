@@ -94,7 +94,7 @@ def show():
 
     habits_df["date"] = pd.to_datetime(habits_df["date"]).dt.date
 
-#scorecard
+    #scorecard
     scores = []
 
     for _, row in habits_df.iterrows():
@@ -233,52 +233,64 @@ def show():
             - Sustained discipline > occasional effort
             """)
 
-# ACHIEVEMENTS
+    # ACHIEVEMENTS
     st.markdown("### Sector 2: Achievements")
 
     achievements = []
 
-    today_str = datetime.now().strftime("%Y-%m-%d")
     today_date = datetime.now().date()
 
-    # today's completed tasks
     tasks_df["date"] = pd.to_datetime(tasks_df["date"], errors="coerce").dt.date
-    today_date = datetime.now().date()
+    scores_df["date"] = pd.to_datetime(scores_df["date"], errors="coerce").dt.date
 
     tasks_today = tasks_df[tasks_df["date"] == today_date]
+    completed_today = int(tasks_today["completed"].sum()) if not tasks_today.empty else 0
 
-    completed_today = 0
-    if not tasks_today.empty:
-        completed_today = int(tasks_today["completed"].sum())
-
-    # today's score
     today_score_val = 0
+    last_7_avg_score = 0
+
     if not scores_df.empty:
+        scores_df = scores_df.sort_values("date")
+
         today_score = scores_df[scores_df["date"] == today_date]
         if not today_score.empty:
             today_score_val = today_score.iloc[0]["score"]
 
+        last_7 = scores_df.tail(7)
+        if not last_7.empty:
+            last_7_avg_score = last_7["score"].mean()
+
 
     if streak >= 7:
-        achievements.append("7 Day Streak")
+        achievements.append("⚡ 7-Day Streak — Momentum locked")
 
-    if today_score_val > 80:
-        achievements.append("High Achiever")
+    if streak >= 14:
+        achievements.append("🔥 14-Day Streak — Consistency")
 
-    if completed_today >= 10:
+    if streak >= 30:
+        achievements.append("👑 30-Day Streak — Discipline building")
+
+    if last_7_avg_score >= 75:
+        achievements.append("High achiever")
+
+    if completed_today >= 5 and streak >= 3:
+        achievements.append("Execution On Point")
+
+    if today_score_val >= 90:
         achievements.append("Winner, aren't you?")
 
-    # display
     if achievements:
         for ach in achievements:
             st.success(ach)
     else:
-        st.info("No achievements yet. Win something.")
+        st.info("No achievements yet. Earn them.")
 
     # task productivity
-    st.subheader("Sector 3: Trend Analysis")
+    st.subheader("Sector 3: Execution Pattern")
 
     if not tasks_df.empty:
+
+        tasks_df["date"] = pd.to_datetime(tasks_df["date"], errors="coerce")
 
         daily = tasks_df.groupby("date")["completed"].mean()
 
@@ -288,7 +300,18 @@ def show():
         weekly = daily.resample("W").mean()
         monthly = daily.resample("M").mean()
 
-        tab1, tab2, tab3 = st.tabs(["Mental", "Physical", "Lifestyle"])
+        if len(daily) >= 14:
+            last_7 = daily.tail(7).mean()
+            prev_7 = daily.tail(14).head(7).mean()
+            delta = last_7 - prev_7
+
+            st.metric(
+                "Execution Change (Last 7 Days)",
+                f"{last_7:.2f}",
+                delta=f"{delta:+.2f}"
+            )
+
+        tab1, tab2, tab3 = st.tabs(["Daily", "Weekly", "Monthly"])
 
         with tab1:
             st.line_chart(daily)
