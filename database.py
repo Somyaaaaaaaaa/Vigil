@@ -178,7 +178,7 @@ def save_habits(date, wake, sleep, water, steps, workout, screen, mood, energy, 
             "meals": meals,
             "snacks": snacks,
             "night_issue": night_issue
-        }).execute()
+        }, on_conflict="date").execute()
     except Exception as e:
         print("Error saving habits:", e)
 

@@ -94,38 +94,62 @@ def show():
 
     habits_df["date"] = pd.to_datetime(habits_df["date"]).dt.date
 
-    #scorecard
+    # SCORECARD
+
     scores = []
+
+    # workout mapping (behavioral input)
+    workout_map = {
+        "None": 0,
+        "Light": 0.4,
+        "Moderate": 0.7,
+        "Intense": 1.0
+    }
 
     for _, row in habits_df.iterrows():
         date_val = row["date"]
 
         tasks_today = tasks_df[tasks_df["date"] == date_val]
 
+        # --- TASK SCORE ---
         if not tasks_today.empty:
             completed = tasks_today["completed"].sum()
             tasks_completed_ratio = completed / len(tasks_today)
         else:
-            tasks_completed_ratio = 0
+            tasks_completed_ratio = None  # don't punish empty days
 
-        water = row["water"]
-        steps = row["steps"]
-        focus = row["focus"]
-        energy = row["energy"]
-        screen_time = row["screen_time"]
+        # --- SAFE EXTRACTION ---
+        water = row.get("water", 0) or 0
+        steps = row.get("steps", 0) or 0
+        screen_time = row.get("screen_time", 0) or 0
+        focus = row.get("focus", 0) or 0
+        energy = row.get("energy", 0) or 0
+        workout = row.get("workout", "None")
 
-        score = (
-            tasks_completed_ratio * 40 +
-            min(water / 3, 1) * 10 +
-            min(steps / 8000, 1) * 10 +
-            (focus / 10) * 15 +
-            (energy / 10) * 10 +
-            max(0, 1 - screen_time / 10) * 15
-        )
+        score = 0
+
+        if tasks_completed_ratio is not None:
+            score += tasks_completed_ratio * 30
+
+        score += min(water / 2, 1) * 10
+        score += min(steps / 7000, 1) * 10
+
+        workout_score = workout_map.get(workout, 0) * 15
+        score += workout_score
+
+        score += max(0, 1 - screen_time / 8) * 15
+
+        # reward pushing through low energy/focus
+        if (focus < 4 or energy < 4) and tasks_completed_ratio is not None:
+            if tasks_completed_ratio > 0.7:
+                score += 5
 
         score = max(0, min(100, score))
 
-        scores.append({"date": date_val, "score": score})
+        scores.append({
+            "date": date_val,
+            "score": score
+        })
 
     scores_df = pd.DataFrame(scores)
 
@@ -187,52 +211,54 @@ def show():
 
     st.progress(progress)
 
-    with st.expander(" ", expanded=False):
-        st.markdown(f"""
-            **XP SYSTEM**
+    st.expander("How is your daily score calculated?").markdown("""
+    ### Scoring Breakdown
 
-            • XP is earned from:
-            - Completed tasks → **10 XP each**
-            - Daily performance score → contributes directly
+    **1. Task Execution (30 pts)**
+    - Based on % of tasks completed for the day  
+    - Completing all tasks = full score  
 
-            • Total XP accumulates over time:
-            - No reset
-            - No decay
-            - Every action counts long-term
+    **2. Physical Baseline (20 pts total)**
+    - Water intake → up to 10 pts (≈3L for full score)  
+    - Steps → up to 10 pts (scaled target, not fixed)  
 
-            ---
+    **3. Workout Effort (15 pts)**
+    - None → 0  
+    - Light → partial  
+    - Moderate → high  
+    - Intense → full score  
 
-            **LEVEL SYSTEM (Progressive Scaling)**
+    **4. Screen Discipline (15 pts)**
+    - Lower screen time = higher score  
+    - Encourages focus and reduced distractions  
 
-            • Levels are based on a square-root model:
-            - Early levels are fast
-            - Higher levels require significantly more effort
+    ---
 
-            • Current Level: **{level}**
+    ### Bonus (+5 pts)
+    If your **focus or energy is low**, but you still complete most of your tasks,  
+    you are rewarded for pushing through.
 
-            • XP required for this level: **{int(xp_for_current_level)}**  
-            • XP required for next level: **{int(xp_for_next_level)}**
+    ---
 
-            ---
+    ### Philosophy
+    This is not a mood tracker.
 
-            **PROGRESSION**
+    - Bad day but strong execution → high score  
+    - Good mood but poor execution → low score  
 
-            • Your progress bar shows how close you are to the next level  
-            • Progress is calculated within your current level range
+    The system measures:
+    > **How you operate under real conditions**
 
-            → Current Progress: **{int(progress * 100)}%**
+    ---
 
-            ---
+    ### Score Meaning
 
-            **INTERPRETATION**
-
-            • High XP + low level → early growth phase  
-            • High level → requires consistent execution over time  
-            • System rewards:
-            - Consistency > bursts  
-            - Sustained discipline > occasional effort
-            """)
-
+    - **50–65** → average day  
+    - **65–75** → structured day  
+    - **75–85** → disciplined day  
+    - **85+** → high-performance day  
+    """)
+    
     # ACHIEVEMENTS
     st.markdown("### Sector 2: Achievements")
 
@@ -419,8 +445,8 @@ def show():
 
             color_map = {
                 "None": "#630e0e",
-                "Light": "#c2c527",
-                "Moderate": "#00ff9f",
+                "Light": "#fdff9f",
+                "Moderate": "#8bef80",
                 "Intense": "#2945c5"
             }
 
@@ -430,7 +456,11 @@ def show():
 
             month_days = calendar.monthcalendar(year, month)
 
-            workout_lookup = habits_df["workout"].dropna().to_dict()
+            habits_df = habits_df.reset_index()
+            habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce").dt.date
+            habits_df = habits_df.sort_values("date").drop_duplicates("date", keep="last")
+
+            workout_lookup = dict(zip(habits_df["date"], habits_df["workout"]))
 
             days_header = ["M", "T", "W", "T", "F", "S", "S"]
             cols = st.columns(7)

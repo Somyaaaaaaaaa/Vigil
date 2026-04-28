@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, date
 import database as db
-
 def show():
 
     def save_habit_log():
@@ -43,7 +42,35 @@ def show():
     st.caption("ASSET PERFORMANCE TRACKING // SYSTEM DIAGNOSTICS")
 
     habit_date = st.date_input("LOG PERIOD", value=date.today(), key="habit_date")
+    existing = db.load_habits(str(habit_date))
 
+    if existing:
+        existing = existing[0]
+    else:
+        existing = {}
+
+    # only update when date changes
+    if "loaded_date" not in st.session_state or st.session_state.loaded_date != habit_date:
+        st.session_state.loaded_date = habit_date
+
+        st.session_state.wake = pd.to_datetime(existing.get("wake_time", "07:00")).time()
+        st.session_state.sleep = pd.to_datetime(existing.get("sleep_time", "23:00")).time()
+        st.session_state.water = existing.get("water", 2.0)
+        st.session_state.workout = existing.get("workout", "None")
+        st.session_state.steps = existing.get("steps", 3000)
+
+        screen = existing.get("screen_time", 1.0)
+        st.session_state.hours = int(screen)
+        st.session_state.minutes = int((screen % 1) * 60)
+
+        st.session_state.mood = existing.get("mood", 5)
+        st.session_state.energy = existing.get("energy", 5)
+        st.session_state.focus = existing.get("focus", 5)
+
+        st.session_state.meals = existing.get("meals", 2)
+        st.session_state.snacks = existing.get("snacks", 1)
+        st.session_state.night_issue = existing.get("night_issue", "NONE")
+        
     st.subheader("Uptime Metrics")
     col_t1, col_t2 = st.columns(2)
     with col_t1:
@@ -102,3 +129,4 @@ def show():
             st.info("No log entry detected for this temporal marker.")
     else:
         st.info("Database Cold. No entries logged.")
+
