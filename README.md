@@ -1,9 +1,9 @@
 # **VIGIL**
 
-**Status: Operational and actively evolving**
-**Classification: Personal Command & Intelligence Dashboard**
+**Status: In development**
+**Type: Personal productivity and tracking dashboard**
 
-VIGIL is a high-fidelity tactical management system designed for complete oversight of daily operations. It combines execution tracking, behavioral analysis, and strategic planning within a unified, mission-oriented interface.
+VIGIL is a personal system to manage tasks, habits, goals, and routines in one place. It focuses on tracking daily execution, building consistency, and giving useful insights into your behavior over time.
 
 ---
 
@@ -54,28 +54,24 @@ app.py → route → module → database.py → Supabase
 
 ## **OPERATIONAL MODULES**
 
-### **I. COMMAND (Dashboard)**
+### **I. Dashboard**
 
-Central control node providing real-time situational awareness of active objectives, streaks, and system status.
+### **II. Tracking**
 
-### **II. DATA ACQUISITION (Tracking)**
+* **Tasks:** 
+* **Habits:** 
 
-* **Tasks:** Daily objective execution
-* **Habits:** Behavioral consistency tracking
+### **III. Planning**
 
-### **III. STRATEGY (Planning)**
+* **Goals:**
+* **Routines:** 
+* **Checklist:** 
 
-* **Goals:** Long-term trajectory alignment
-* **Routines:** Structured daily systems (SOPs)
-* **Checklist:** Non-time-sensitive execution pool
-
-### **IV. INTELLIGENCE (Insights)**
-
-Processes behavioral data into actionable insights, identifying patterns, inefficiencies, and performance gaps.
+### **IV. Insights**
 
 ---
 
-## **ACCESS PROTOCOL**
+## **ACCESS**
 
 The system is protected by a password layer.
 
@@ -140,7 +136,7 @@ A template file is provided:
 .env.example
 ```
 
-Copy it and rename to `.env`, then fill in your credentials.
+Copy it and rename to `.env` before filling in your credentials.
 
 ---
 
@@ -148,16 +144,13 @@ Copy it and rename to `.env`, then fill in your credentials.
 
 * `.env` is not included in the repository
 * Credentials must be configured locally
-* Do not expose your Supabase keys publicly
 
 ---
 
-## **INTELLECTUAL PROPERTY NOTICE**
+## **License**
 
-**© 2026 VIGIL CORE. ALL RIGHTS RESERVED.**
+**© 2026 VIGIL**
 
-The Vigil system, including its design language and structure, is an original work.
-
-* Non-commercial use only
-* Attribution required if shared
-* Rebranding or redistribution without credit is not permitted
+For personal and non-commercial use
+Attribution required if shared
+Do not redistribute without credit

@@ -47,35 +47,19 @@ def show():
     st.subheader("Sector 1: Persistence Metrics")
 
     streak = 0
-    max_streak = 0
 
     if not habits_df.empty:
+        habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce").dt.date
+        unique_dates = set(habits_df["date"])
 
-        # --- clean + sort dates ---
-        dates = sorted(set(habits_df["date"]))
+        today = date.today()
 
-        today = datetime.now().date()
+        # if today not logged yet, start from yesterday
+        current_day = today if today in unique_dates else today - timedelta(days=1)
 
-        # current streak
-        from datetime import date, timedelta
-
-        streak = 0
-
-        if not habits_df.empty:
-            habits_df["date"] = pd.to_datetime(habits_df["date"], errors="coerce").dt.date
-            unique_dates = set(habits_df["date"])
-
-            today = date.today()
-
-            # if today not logged yet, start from yesterday
-            if today not in unique_dates:
-                current_day = today - timedelta(days=1)
-            else:
-                current_day = today
-
-            while current_day in unique_dates:
-                streak += 1
-                current_day -= timedelta(days=1)
+        while current_day in unique_dates:
+            streak += 1
+            current_day -= timedelta(days=1)
 
 
         # historical best
